@@ -1,7 +1,7 @@
 ## 项目结构
 Updating: 2023-06-12<br>
 
-url:[点击此处（click here）](https://github.com/sellenzh/pedCMT)
+url:[点击此处（click here）](https://github.com/sellenzh/pedCMT)<br>
 项目结构如下所示：
 
 ```
@@ -14,7 +14,7 @@ url:[点击此处（click here）](https://github.com/sellenzh/pedCMT)
 │   └── PIE                     <- 这里依据的数据集名称命名。
 │       └── ...                 <- ...
 │
-├── PIE                         <- 数据集（此处下载:[PIE](https://github.com/aras62/PIE.git)
+├── PIE                         <- 数据集（此处下载:[PIE](https://github.com/aras62/PIE.git))
 │   ├── ...                     <- note: 需要解压文件`annotations.zip`,`annotations_vehicle.zip`,
 │   │   ├── ...                 <- `annotations_attributes.zip`
 │   │   └── ....                <- 此处下载:[PIE](https://github.com/aras62/PIE.git)
@@ -35,3 +35,6 @@ url:[点击此处（click here）](https://github.com/sellenzh/pedCMT)
 ├── pie.py                      <- 训练文件。 
 │                                 └ 
 └── README.md
+```
+此处下载:[PIE](https://github.com/aras62/PIE.git)
+另一个数据集[JAAD](https://github.com/ykotseruba/JAAD.git)
