@@ -12,7 +12,7 @@ import argparse
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def main(args):
-    if not args.learn:
+    if not args.learn: # 如果args.learn为False，则真实训练， 读取真实数据
         seed_all(args.seed)
         data_opts = {
             'fstride': 1,
@@ -32,12 +32,10 @@ def main(args):
         imdb = PIE(data_path=args.set_path) 
         seq_train = imdb.generate_data_trajectory_sequence('train', **data_opts) # 生成训练集
         balanced_seq_train = balance_dataset(seq_train) # 平衡数据集
-        #balanced_seq_train = seq_train
         tte_seq_train, traj_seq_train = tte_dataset(balanced_seq_train, data_opts['tte'], 0.6, args.times_num) # 生成训练集的tte和轨迹
 
         seq_valid = imdb.generate_data_trajectory_sequence('val', **data_opts)
         balanced_seq_valid = balance_dataset(seq_valid)
-        #balanced_seq_valid = seq_valid
         tte_seq_valid, traj_seq_valid = tte_dataset(balanced_seq_valid, data_opts['tte'], 0, args.times_num)
 
         seq_test = imdb.generate_data_trajectory_sequence('test', **data_opts)
@@ -70,9 +68,6 @@ def main(args):
         normalized_bbox_dec_train = normalize_traj(bbox_dec_train) # 归一化轨迹
         normalized_bbox_dec_valid = normalize_traj(bbox_dec_valid)
         normalized_bbox_dec_test  = normalize_traj(bbox_dec_test)
-        '''normalized_bbox_dec_train = bbox_dec_train
-        normalized_bbox_dec_valid = bbox_dec_valid
-        normalized_bbox_dec_test = bbox_dec_test'''
 
         label_action_train = prepare_label(action_train) # 准备标签
         label_action_valid = prepare_label(action_valid)
@@ -104,7 +99,7 @@ def main(args):
         train_loader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True) # 生成dataloader
         valid_loader = DataLoader(validset, batch_size=args.batch_size, shuffle=True)
         test_loader = DataLoader(testset, batch_size=1)
-    else: # 生成随机数据
+    else: # args.learn为True，不真实训练，生成随机数据。
         train_loader = [[torch.randn(size=(args.batch_size, args.times_num, args.bbox_input)), 
                          torch.randn(size=(args.batch_size, 1)), 
                          torch.randn(size=(args.batch_size, args.times_num, args.vel_input)), 
@@ -177,9 +172,10 @@ if __name__ == '__main__':
     parser.add_argument('--num_bnks', type=int, default=3, help='')# 瓶颈结构的单元数目
     parser.add_argument('--bnks_layers', type=int, default=7, help='')# 瓶颈结构的层数
 
-    parser.add_argument('--sta_f', type=int, default=8)# 若采用随机时间裁剪，则sta_f和end_f为裁剪的起始和结束帧
+    parser.add_argument('--sta_f', type=int, default=8)# 若采用随机时间裁剪，则从sta_f到end_f中随机选取一个时间点作为保留的时间段。
     parser.add_argument('--end_f', type=int, default=12)
 
     parser.add_argument('--learn', type=bool, default=True)# 是否跳过真实数据读取，生成尺寸相同的随机数据。
+    # 目的如果是为了了解项目的运行过程，则可以将learn设置为True，这样可以跳过真实数据读取，生成尺寸相同的随机数据。
     args = parser.parse_args()
     main(args)

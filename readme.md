@@ -14,12 +14,12 @@ Updating: 2023-06-12<br>
 │   └── PIE                     <- 这里依据的数据集名称命名。
 │       └── ...                 <- ...
 │
-├── PIE                         <- 数据集（此处下载:[PIE](https://github.com/aras62/PIE.git))
+├── PIE                         <- 数据集（下载:[PIE]）
 │   ├── ...                     <- note: 需要解压文件`annotations.zip`,`annotations_vehicle.zip`,
 │   │   ├── ...                 <- `annotations_attributes.zip`
-│   │   └── ....                <- 此处下载:[PIE](https://github.com/aras62/PIE.git)
+│   │   └── ....                <- 
 │   └── ...  
-│       ├── ...                 <- 另一个数据集[JAAD](https://github.com/ykotseruba/JAAD.git)
+│       ├── ...                 <- 另一个数据集[JAAD]
 │       └── ...                 <- ...
 │
 ├── utils                       <- 保存工具文件。
@@ -29,11 +29,13 @@ Updating: 2023-06-12<br>
 ├── model                       <- 保存模型文件。
 │   ├── BottleNeck.py           <- 瓶颈结构。
 │   ├── FFN.py                  <- 前馈神经网络。
-│   ├── model_blocks.py         <- 一些使用或未使用的模型块。
+│   ├── model_blocks.py         <- 一些使用的小型模型块。
 │   └── main_model.py           <- 主模型。
 │
 ├── pie.py                      <- 训练文件。 
 │                                 └ 
+├── jaad.py                     <- 训练文件。 （未标记注释。）
+│                                 └ 在JAAD数据集上的训练文件。
 └── README.md
 ```
 此处下载:[PIE](https://github.com/aras62/PIE.git)<br>
