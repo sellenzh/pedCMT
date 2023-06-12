@@ -43,6 +43,8 @@ def train(model, train_loader, valid_loader, class_criterion, reg_criterion, opt
     num_steps_wo_improvement = 0
     save_times = 0
     epochs = args.epochs
+    if args.learn: # 调试模式： epoch = 5
+        epochs = 5
     time_crop = args.time_crop
     for epoch in range(epochs):
         nb_batches_train = len(train_loader)
@@ -53,11 +55,11 @@ def train(model, train_loader, valid_loader, class_criterion, reg_criterion, opt
         reg_losses = 0.0
 
         print('Epoch: {} training...'.format(epoch + 1))
-        for bbox, label, vel, end_point in train_loader:
+        for bbox, label, vel, traj in train_loader:
             label = label.reshape(-1, 1).to(device).float()
             bbox = bbox.to(device)
             vel = vel.to(device)
-            end_point = end_point.to(device)
+            end_point = traj.to(device)[:, -1, :]
 
             if np.random.randint(10) >= 5 and time_crop:
                 crop_size = np.random.randint(args.sta_f, args.end_f)
@@ -67,7 +69,7 @@ def train(model, train_loader, valid_loader, class_criterion, reg_criterion, opt
             pred, point, s_cls, s_reg = model(bbox, vel)
 
             cls_loss = class_criterion(pred, label)
-            reg_loss = reg_criterion(point, end_point[:, -1, :])
+            reg_loss = reg_criterion(point, end_point)
             f_loss = cls_loss / (s_cls * s_cls) + reg_loss / (s_reg * s_reg) + torch.log(s_cls) + torch.log(s_reg)
 
             model.zero_grad()  #
@@ -145,16 +147,16 @@ def evaluate(model, val_data, class_criterion, reg_criterion):
     with torch.no_grad():
         model.eval()
         acc = 0
-        for bbox, label, vel, end_point in val_data:
+        for bbox, label, vel, traj in val_data:
             label = label.reshape(-1, 1).to(device).float()
             bbox = bbox.to(device)
             vel = vel.to(device)
-            end_point = end_point.to(device)
+            end_point = traj.to(device)[:, -1, :]
 
             pred, point, s_cls, s_reg = model(bbox, vel)
 
             val_cls_loss = class_criterion(pred, label)
-            val_reg_loss = reg_criterion(point, end_point[:, -1, :])
+            val_reg_loss = reg_criterion(point, end_point)
             f_loss = val_cls_loss / (s_cls * s_cls) + val_reg_loss / (s_reg * s_reg) + torch.log(s_cls) + torch.log(
                 s_reg)
 
@@ -173,7 +175,7 @@ def test(model, test_data):
     with torch.no_grad():
         model.eval()
         step = 0
-        for bbox, label, vel, end_point in test_data:
+        for bbox, label, vel, traj in test_data:
             label = label.reshape(-1, 1).to(device).float()
             bbox = bbox.to(device)
             vel = vel.to(device)

@@ -57,11 +57,11 @@ def train(model, train_loader, valid_loader, class_criterion, reg_criterion, opt
         reg_losses = 0.0 # 回归损失
 
         print('Epoch: {} training...'.format(epoch + 1))
-        for bbox, label, vel, end_point in train_loader:
+        for bbox, label, vel, traj in train_loader:
             label = label.reshape(-1, 1).to(device).float() # 标签
             bbox = bbox.to(device) 
             vel = vel.to(device)
-            end_point = end_point.to(device) 
+            end_point = traj.to(device)[:, -1, :] #轨迹的最后一刻时刻的点
 
             if np.random.randint(10) >= 5 and time_crop: # 随机时间裁剪
                 crop_size = np.random.randint(args.sta_f, args.end_f)
@@ -70,7 +70,7 @@ def train(model, train_loader, valid_loader, class_criterion, reg_criterion, opt
 
             pred, point, s_cls, s_reg = model(bbox, vel) # 预测值，端点，分类损失系数，回归损失系数
             cls_loss = class_criterion(pred, label) # 分类损失
-            reg_loss = reg_criterion(point, end_point[:, -1, :]) # 回归损失
+            reg_loss = reg_criterion(point, end_point) # 回归损失
             f_loss = cls_loss / (s_cls * s_cls) + reg_loss / (s_reg * s_reg) + torch.log(s_cls * s_reg) 
             # 总损失
 
@@ -156,14 +156,14 @@ def evaluate(model, val_data, class_criterion, reg_criterion):
     with torch.no_grad():
         model.eval()
         acc = 0
-        for bbox, label, vel, end_point in val_data:
+        for bbox, label, vel, traj in val_data:
             label = label.reshape(-1, 1).to(device).float()
             bbox = bbox.to(device)
             vel = vel.to(device)
-            end_point = end_point.to(device)
+            end_point = traj.to(device)[:, -1, :]
 
             pred, point, s_cls, s_reg = model(bbox, vel)
-            val_reg_loss = reg_criterion(point, end_point[:, -1, :])
+            val_reg_loss = reg_criterion(point, end_point)
             val_cls_loss = class_criterion(pred, label)
             f_loss = val_cls_loss / (s_cls * s_cls) + val_reg_loss / (s_reg * s_reg) + torch.log(s_cls * s_reg)
 
@@ -182,12 +182,12 @@ def test(model, test_data):
     with torch.no_grad():
         model.eval()
         step = 0
-        for bbox, label, vel, end_point in test_data:
+        for bbox, label, vel, traj in test_data:
             label = label.reshape(-1, 1).to(device).float()
             bbox = bbox.to(device)
             vel = vel.to(device)
 
-            pred, _, sigma1, sigma2 = model(bbox, vel)
+            pred, _, _, _ = model(bbox, vel)#测试阶段只需要预测分类结果，不关心回归结果
 
             if step == 0:
                 preds = pred
@@ -196,7 +196,6 @@ def test(model, test_data):
                 preds = torch.cat((preds, pred), 0)
                 labels = torch.cat((labels, label), 0)
             step += 1
-    print(sigma1, sigma2)
     return preds, labels
 
 

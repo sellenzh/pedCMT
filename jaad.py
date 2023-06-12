@@ -12,82 +12,95 @@ import argparse
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def main(args):
-    seed_all(args.seed)
-    data_opts = {'fstride': 1,
-                'sample_type': args.bh,  # 'beh'
-                'subset': 'default',
-                'height_rng': [0, float('inf')],
-                'squarify_ratio': 0,
-                'data_split_type': 'default',  # kfold, random, default
-                'seq_type': 'crossing',
-                'min_track_size': 15,
-                'random_params': {'ratios': None,
-                                    'val_data': True,
-                                    'regen_data': False},
-                'kfold_params': {'num_folds': 5, 'fold': 1},
-    }
-    tte = [30, 60]
-    imdb = JAAD(data_path=args.set_path)
-    seq_train = imdb.generate_data_trajectory_sequence('train', **data_opts)
-    balanced_seq_train = balance_dataset(seq_train)
-    tte_seq_train, traj_seq_train = tte_dataset(balanced_seq_train, tte, 0.6, args.times_num)
+    if not args.learn:
+        seed_all(args.seed)
+        data_opts = {'fstride': 1,
+                    'sample_type': args.bh,  # 'beh'
+                    'subset': 'default',
+                    'height_rng': [0, float('inf')],
+                    'squarify_ratio': 0,
+                    'data_split_type': 'default',  # kfold, random, default
+                    'seq_type': 'crossing',
+                    'min_track_size': 15,
+                    'random_params': {'ratios': None,
+                                        'val_data': True,
+                                        'regen_data': False},
+                    'kfold_params': {'num_folds': 5, 'fold': 1},
+        }
+        tte = [30, 60]
+        imdb = JAAD(data_path=args.set_path)
+        seq_train = imdb.generate_data_trajectory_sequence('train', **data_opts)
+        balanced_seq_train = balance_dataset(seq_train)
+        tte_seq_train, traj_seq_train = tte_dataset(balanced_seq_train, tte, 0.6, args.times_num)
 
-    seq_valid = imdb.generate_data_trajectory_sequence('val', **data_opts)
-    balanced_seq_valid = balance_dataset(seq_valid)
-    tte_seq_valid, traj_seq_valid = tte_dataset(balanced_seq_valid, tte, 0, args.times_num)
+        seq_valid = imdb.generate_data_trajectory_sequence('val', **data_opts)
+        balanced_seq_valid = balance_dataset(seq_valid)
+        tte_seq_valid, traj_seq_valid = tte_dataset(balanced_seq_valid, tte, 0, args.times_num)
 
-    seq_test = imdb.generate_data_trajectory_sequence('test', **data_opts)
-    tte_seq_test, traj_seq_test = tte_dataset(seq_test, tte, 0, args.times_num)
+        seq_test = imdb.generate_data_trajectory_sequence('test', **data_opts)
+        tte_seq_test, traj_seq_test = tte_dataset(seq_test, tte, 0, args.times_num)
 
-    bbox_train = tte_seq_train['bbox']
-    bbox_valid = tte_seq_valid['bbox']
-    bbox_test = tte_seq_test['bbox']
+        bbox_train = tte_seq_train['bbox']
+        bbox_valid = tte_seq_valid['bbox']
+        bbox_test = tte_seq_test['bbox']
 
-    bbox_dec_train = traj_seq_train['bbox']
-    bbox_dec_valid = traj_seq_valid['bbox']
-    bbox_dec_test  = traj_seq_test['bbox']
+        bbox_dec_train = traj_seq_train['bbox']
+        bbox_dec_valid = traj_seq_valid['bbox']
+        bbox_dec_test  = traj_seq_test['bbox']
 
-    vel_train = tte_seq_train['vehicle_act']
-    vel_valid = tte_seq_valid['vehicle_act']
-    vel_test = tte_seq_test['vehicle_act']
+        vel_train = tte_seq_train['vehicle_act']
+        vel_valid = tte_seq_valid['vehicle_act']
+        vel_test = tte_seq_test['vehicle_act']
 
-    action_train = tte_seq_train['activities']
-    action_valid = tte_seq_valid['activities']
-    action_test = tte_seq_test['activities']
+        action_train = tte_seq_train['activities']
+        action_valid = tte_seq_valid['activities']
+        action_test = tte_seq_test['activities']
 
-    normalized_bbox_train = normalize_bbox(bbox_train)
-    normalized_bbox_valid = normalize_bbox(bbox_valid)
-    normalized_bbox_test = normalize_bbox(bbox_test)
+        normalized_bbox_train = normalize_bbox(bbox_train)
+        normalized_bbox_valid = normalize_bbox(bbox_valid)
+        normalized_bbox_test = normalize_bbox(bbox_test)
 
-    normalized_bbox_dec_train = normalize_traj(bbox_dec_train)
-    normalized_bbox_dec_valid = normalize_traj(bbox_dec_valid)
-    normalized_bbox_dec_test  = normalize_traj(bbox_dec_test)
+        normalized_bbox_dec_train = normalize_traj(bbox_dec_train)
+        normalized_bbox_dec_valid = normalize_traj(bbox_dec_valid)
+        normalized_bbox_dec_test  = normalize_traj(bbox_dec_test)
 
-    label_action_train = prepare_label(action_train)
-    label_action_valid = prepare_label(action_valid)
-    label_action_test = prepare_label(action_test)
+        label_action_train = prepare_label(action_train)
+        label_action_valid = prepare_label(action_valid)
+        label_action_test = prepare_label(action_test)
 
-    X_train, X_valid = torch.Tensor(normalized_bbox_train), torch.Tensor(normalized_bbox_valid)
-    Y_train, Y_valid = torch.Tensor(label_action_train), torch.Tensor(label_action_valid)
-    X_test = torch.Tensor(normalized_bbox_test)
-    Y_test = torch.Tensor(label_action_test)
+        X_train, X_valid = torch.Tensor(normalized_bbox_train), torch.Tensor(normalized_bbox_valid)
+        Y_train, Y_valid = torch.Tensor(label_action_train), torch.Tensor(label_action_valid)
+        X_test = torch.Tensor(normalized_bbox_test)
+        Y_test = torch.Tensor(label_action_test)
 
-    X_train_dec = torch.Tensor(pad_sequence(normalized_bbox_dec_train, 60))
-    X_valid_dec = torch.Tensor(pad_sequence(normalized_bbox_dec_valid, 60))
-    X_test_dec = torch.Tensor(pad_sequence(normalized_bbox_dec_test, 60))
+        X_train_dec = torch.Tensor(pad_sequence(normalized_bbox_dec_train, 60))
+        X_valid_dec = torch.Tensor(pad_sequence(normalized_bbox_dec_valid, 60))
+        X_test_dec = torch.Tensor(pad_sequence(normalized_bbox_dec_test, 60))
 
-    vel_train = torch.Tensor(vel_train)
-    vel_valid = torch.Tensor(vel_valid)
-    vel_test = torch.Tensor(vel_test)
+        vel_train = torch.Tensor(vel_train)
+        vel_valid = torch.Tensor(vel_valid)
+        vel_test = torch.Tensor(vel_test)
 
-    trainset = TensorDataset(X_train, Y_train, vel_train, X_train_dec)
-    validset = TensorDataset(X_valid, Y_valid, vel_valid, X_valid_dec)
-    testset = TensorDataset(X_test, Y_test, vel_test, X_test_dec)
+        trainset = TensorDataset(X_train, Y_train, vel_train, X_train_dec)
+        validset = TensorDataset(X_valid, Y_valid, vel_valid, X_valid_dec)
+        testset = TensorDataset(X_test, Y_test, vel_test, X_test_dec)
 
-    train_loader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True)
-    valid_loader = DataLoader(validset, batch_size=args.batch_size, shuffle=True)
-    test_loader = DataLoader(testset, batch_size=1)
-
+        train_loader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True)
+        valid_loader = DataLoader(validset, batch_size=args.batch_size, shuffle=True)
+        test_loader = DataLoader(testset, batch_size=1)
+    else: # 生成随机数据
+        train_loader = [[torch.randn(size=(args.batch_size, args.times_num, args.bbox_input)), 
+                         torch.randn(size=(args.batch_size, 1)), 
+                         torch.randn(size=(args.batch_size, args.times_num, args.vel_input)), 
+                         torch.randn(size=(args.batch_size, args.times_num, args.bbox_input))]]
+        valid_loader = [[torch.randn(size=(args.batch_size, args.times_num, args.bbox_input)), 
+                         torch.randn(size=(args.batch_size, 1)), 
+                         torch.randn(size=(args.batch_size, args.times_num, args.vel_input)), 
+                         torch.randn(size=(args.batch_size, args.times_num, args.bbox_input))]]
+        test_loader = [[torch.randn(size=(args.batch_size, args.times_num, args.bbox_input)), 
+                        torch.randn(size=(args.batch_size, 1)), 
+                        torch.randn(size=(args.batch_size, args.times_num, args.vel_input)), 
+                        torch.randn(size=(args.batch_size, args.times_num, args.bbox_input))]]
     print('Start Training Loop... \n')
 
     model = Model(args)
@@ -120,27 +133,6 @@ def main(args):
     recall_s = recall_score(label_cpu, np.round(pred_cpu))
     auc = roc_auc_score(label_cpu, np.round(pred_cpu))
     matrix = confusion_matrix(label_cpu, np.round(pred_cpu))
-
-    filename = './jaad_res.txt'
-    with open(filename, 'a') as f:
-        d_model = args.d_model
-        dff = args.dff
-        #batch_size = args.batch_size
-        times_num = args.times_num
-        layers = args.num_layers
-        num_bnks = args.num_bnks
-        bnks_layers = args.bnks_layers
-        #lr = args.lr
-        s = 'd_model: ' + str(d_model) + '\ndff: ' + str(dff) + '\nlayers: ' + str(layers) + '\ntimes_num: ' + str(times_num) + '\nbnks_layers: ' + str(bnks_layers) + '\nnum_bnks: ' + str(num_bnks) + '\n'
-        #s = '\nbnks_layers: ' + str(bnks_layers) + '\nnum_bnks: ' + str(num_bnks) + '\n'
-        #s = 'lr: ' + str(lr) +'\nnum_bnks: ' + str(num_bnks) + '\n'
-        #st, ed = args.sta_f, args.end_f
-        #s = 'start_frame :' + str(st) + '\n' + 'end_frame :' + str(ed) + '\n'
-        f.write(s)
-        accp = '\nAcc:' + str(acc * 100) + '---' + '\nF1:' + str(f1 * 100) + '---' + '\npre:' + str(pre_s * 100) + '---' + '\nRec:' + str(recall_s * 100) + '---' + '\nAUC:' + str(auc * 100) + '---' + '\nmatrix:' + str(matrix) + '---'
-        shift_line = '\n\n'
-        f.write(accp)
-        f.write(shift_line)
 
     print(f'Acc: {acc}\n f1: {f1}\n precision_score: {pre_s}\n recall_score: {recall_s}\n roc_auc_score: {auc}\n confusion_matrix: {matrix}')
 
