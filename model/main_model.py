@@ -21,7 +21,7 @@ class Model(nn.Module):
         hidden_dim = args.dff
         modal_nums = 2
         self.num_layers = args.num_layers
-        self.token = nn.Parameter(torch.ones(1, 1, d_model)) # 生成一个可训练的token
+        self.token = nn.Parameter(torch.ones(1, 1, d_model)) # 生成一个可训练的token @@绿色token
 
         self.bbox_embedding = EmbedPosEnc(args.bbox_input, d_model) # 张量嵌入以及生成位置编码
         self.bbox_token = nn.Parameter(torch.ones(1, 1, d_model))   # 生成一个可训练的bbox_token
