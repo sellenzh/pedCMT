@@ -100,10 +100,10 @@ def main(args):
         valid_loader = DataLoader(validset, batch_size=args.batch_size, shuffle=True)
         test_loader = DataLoader(testset, batch_size=1)
     else: # args.learn为True，不真实训练，生成随机数据。
-        train_loader = [[torch.randn(size=(args.batch_size, args.times_num, args.bbox_input)), 
-                         torch.randn(size=(args.batch_size, 1)), 
-                         torch.randn(size=(args.batch_size, args.times_num, args.vel_input)), 
-                         torch.randn(size=(args.batch_size, args.times_num, args.bbox_input))]]
+        train_loader = [[torch.randn(size=(args.batch_size, args.times_num, args.bbox_input)), # bbox
+                         torch.randn(size=(args.batch_size, 1)),                                # label
+                         torch.randn(size=(args.batch_size, args.times_num, args.vel_input)),   # velocity
+                         torch.randn(size=(args.batch_size, args.times_num, args.bbox_input))]] # trajectory
         valid_loader = [[torch.randn(size=(args.batch_size, args.times_num, args.bbox_input)), 
                          torch.randn(size=(args.batch_size, 1)), 
                          torch.randn(size=(args.batch_size, args.times_num, args.vel_input)), 
@@ -118,7 +118,7 @@ def main(args):
     model.to(device) # 放到gpu上
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.98), eps=1e-6) # 生成优化器
-    cls_criterion = nn.BCELoss() # 生成损失函数
+    cls_criterion = nn.BCELoss() # 生成损失函数 binary cross entropy
     reg_criterion = nn.MSELoss() # 生成损失函数
 
     model_folder_name = args.set_path 
