@@ -39,13 +39,13 @@ def end_point_loss(reg_criterion, pred, end_point):# 计算端点误差（未使
 
 def train(model, train_loader, valid_loader, class_criterion, reg_criterion, optimizer, checkpoint_filepath, writer,
           args):
-    best_valid_acc = 0.0# 最佳准确率
-    improvement_ratio = 0.001
+    # best_valid_acc = 0.0# 最佳准确率
+    # improvement_ratio = 0.001
     best_valid_loss = np.inf # 最佳损失
     num_steps_wo_improvement = 0 # 未提升的次数
     save_times = 0 # 保存的次数
     epochs = args.epochs # 训练的轮数
-    time_crop = args.time_crop # 是否进行时间裁剪
+    # time_crop = args.time_crop # 是否进行时间裁剪
     if args.learn: # 调试模式： epoch = 5
         epochs = 5
     for epoch in range(epochs):
@@ -63,10 +63,10 @@ def train(model, train_loader, valid_loader, class_criterion, reg_criterion, opt
             vel = vel.to(device)
             end_point = traj.to(device)[:, -1, :] #轨迹的最后一刻时刻的点
 
-            if np.random.randint(10) >= 5 and time_crop: # 随机时间裁剪
-                crop_size = np.random.randint(args.sta_f, args.end_f)
-                bbox = bbox[:, -crop_size:, :]
-                # vel = vel[:, -crop_size:, :]
+            # if np.random.randint(10) >= 5 and time_crop: # 随机时间裁剪
+            #     crop_size = np.random.randint(args.sta_f, args.end_f)
+            #     bbox = bbox[:, -crop_size:, :]
+            #     # vel = vel[:, -crop_size:, :]
 
             pred, point, s_cls, s_reg = model(bbox, vel) # 预测值，端点，分类损失系数，回归损失系数
             cls_loss = class_criterion(pred, label) # 分类损失
@@ -131,12 +131,7 @@ def train(model, train_loader, valid_loader, class_criterion, reg_criterion, opt
                 'LOSS': f_losses / nb_batches_train,
             }, checkpoint_filepath) # 保存模型
             print('Update improvement.\n')
-            writer.add_scalar('cls_sigma',
-                        s_cls.item(),
-                        save_times)
-            writer.add_scalar('reg_sigma',
-                        s_reg.item(),
-                        save_times)
+
         else: # 未提升
             num_steps_wo_improvement += 1
             print(str(num_steps_wo_improvement) + '/300 times Not update.\n')
