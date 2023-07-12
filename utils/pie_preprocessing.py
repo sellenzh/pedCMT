@@ -253,7 +253,7 @@ def balance_dataset(dataset, flip=True): # 数据集平衡
 
         np.random.seed(42)
         np.random.shuffle(rm_index) # 打乱索引
-        rm_index = rm_index[0::dif_samples] # 间隔删除
+        rm_index = rm_index[0:dif_samples] # 间隔删除
 
         for k in d: # 遍历数据
             seq_data_k = d[k] # 数据
@@ -261,7 +261,7 @@ def balance_dataset(dataset, flip=True): # 数据集平衡
 
         new_gt_labels = [gt[0] for gt in d['activities']] # 新标签
         num_pos_samples = np.count_nonzero(np.array(new_gt_labels)) # 新正样本数
-        print('Balanced: Postive: %d \t Negative: %d \n' % (num_pos_samples, len(d['activities']) - num_neg_samples))
+        print('Balanced: Postive: %d \t Negative: %d \n' % (num_pos_samples, len(d['activities']) - num_pos_samples))
         print('Total Number of samples: %d\n' % (len(d['activities'])))
 
     return d
