@@ -250,7 +250,7 @@ def balance_dataset(dataset, flip=True):
 
         np.random.seed(42)
         np.random.shuffle(rm_index)
-        rm_index = rm_index[0::dif_samples]
+        rm_index = rm_index[0:dif_samples]
 
         for k in d:
             seq_data_k = d[k]
@@ -258,7 +258,7 @@ def balance_dataset(dataset, flip=True):
 
         new_gt_labels = [gt[0] for gt in d['activities']]
         num_pos_samples = np.count_nonzero(np.array(new_gt_labels))
-        print('Balanced: Postive: %d \t Negative: %d \n' % (num_pos_samples, len(d['activities']) - num_neg_samples))
+        print('Balanced: Postive: %d \t Negative: %d \n' % (num_pos_samples, len(d['activities']) - num_pos_samples))
         print('Total Number of samples: %d\n' % (len(d['activities'])))
 
     return d
